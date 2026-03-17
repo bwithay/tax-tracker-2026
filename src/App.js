@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+
 // Firebase Realtime Database via REST API — no SDK imports needed
 const FB_URL = "https://tax-tracker-2026-default-rtdb.firebaseio.com";
 
@@ -15,13 +16,18 @@ async function loadStorage(path) {
 
 async function saveStorage(path, val) {
   try {
-    await fetch(`${FB_URL}/${path}.json`, {
+    console.log("Firebase saving to:", path, "value:", JSON.stringify(val).slice(0, 100));
+    const res = await fetch(`${FB_URL}/${path}.json`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(val),
     });
+    const text = await res.text();
+    console.log("Firebase response:", res.status, text.slice(0, 200));
+    return res.ok;
   } catch (e) {
     console.error("Firebase write error:", e);
+    return false;
   }
 }
 
@@ -121,15 +127,15 @@ async function parsePaystub(base64, mediaType) {
     ? { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } }
     : { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } };
 
-const res = await fetch("/api/parse-paystub", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-
-
-  },
-  body: JSON.stringify({
-    model: "claude-sonnet-4-20250514",
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
       max_tokens: 1000,
       messages: [{
         role: "user",
@@ -170,7 +176,7 @@ const INIT_PROJECTIONS = [
   { id: 4, label: "IHSS", type: "nontaxable", projectedAnnual: 9600 },
 ];
 
-export default function App() {
+export default function TaxTracker() {
   const [entries, setEntries] = useState([]);
   const [projections, setProjections] = useState(INIT_PROJECTIONS);
   const [tab, setTab] = useState("dashboard");
@@ -198,13 +204,34 @@ export default function App() {
     })();
   }, []);
 
-  useEffect(() => { if (loaded) saveStorage("bryan/tax2026/entries", entries); }, [entries, loaded]);
-  useEffect(() => { if (loaded) saveStorage("bryan/tax2026/projections", projections); }, [projections, loaded]);
-  useEffect(() => { if (loaded) saveStorage("bryan/tax2026/payments", taxPayments); }, [taxPayments, loaded]);
+  useEffect(() => {
+    if (loaded && entries.length > 0) saveStorage("bryan/tax2026/entries", entries);
+  }, [entries, loaded]);
+  useEffect(() => {
+    if (loaded && projections.length > 0) saveStorage("bryan/tax2026/projections", projections);
+  }, [projections, loaded]);
+  useEffect(() => {
+    if (loaded && taxPayments.length > 0) saveStorage("bryan/tax2026/payments", taxPayments);
+  }, [taxPayments, loaded]);
+
+  // Match entries to projections — handles abbreviations, partial names, and aliases
+  // Each projection can define aliases that paystubs might use
+  const PROJECTION_ALIASES = {
+    "SDCCE": ["sdccd", "san diego college", "continuing education", "sdcce"],
+    "Career Certified": ["career certified"],
+    "Stanford Health Care": ["stanford", "stanford health"],
+    "IHSS": ["ihss", "in-home supportive"],
+  };
 
   const enrichedProjections = projections.map(p => {
+    const aliases = PROJECTION_ALIASES[p.label] || [p.label.toLowerCase()];
     const received = entries
-      .filter(e => e.employer?.toLowerCase().includes(p.label.toLowerCase()) || p.label.toLowerCase().includes((e.employer || "").toLowerCase().split(" ")[0]))
+      .filter(e => {
+        const emp = (e.employer || "").toLowerCase();
+        return aliases.some(alias => emp.includes(alias)) ||
+               emp.includes(p.label.toLowerCase()) ||
+               p.label.toLowerCase().includes(emp.split(" ")[0]);
+      })
       .reduce((s, e) => s + e.amount, 0);
     return { ...p, receivedSoFar: received };
   });
@@ -730,9 +757,10 @@ export default function App() {
         {/* EXPORT */}
         {tab === "export" && (() => {
           const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-          
+          const taxableEntries = entries.filter(e => e.type !== "nontaxable");
+          const nontaxableEntries = entries.filter(e => e.type === "nontaxable");
           const w2Entries = entries.filter(e => e.type === "w2");
-         
+          const entries1099 = entries.filter(e => e.type === "1099");
 
           const lines = [
             "=".repeat(52),
