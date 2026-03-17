@@ -732,10 +732,9 @@ export default function App() {
         {/* EXPORT */}
         {tab === "export" && (() => {
           const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-          const taxableEntries = entries.filter(e => e.type !== "nontaxable");
-          const nontaxableEntries = entries.filter(e => e.type === "nontaxable");
+          
           const w2Entries = entries.filter(e => e.type === "w2");
-          const entries1099 = entries.filter(e => e.type === "1099");
+         
 
           const lines = [
             "=".repeat(52),
