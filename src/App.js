@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-
+const ANTHROPIC_API_KEY = process.env.REACT_APP_ANTHROPIC_KEY;
 // Firebase Realtime Database via REST API — no SDK imports needed
 const FB_URL = "https://tax-tracker-2026-default-rtdb.firebaseio.com";
 
@@ -123,10 +123,15 @@ async function parsePaystub(base64, mediaType) {
     : { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } };
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "x-api-key": ANTHROPIC_API_KEY,
+    "anthropic-version": "2023-06-01",
+    "anthropic-dangerous-direct-browser-access": "true",
+  },
+  body: JSON.stringify({
+    model: "claude-sonnet-4-20250514",
       max_tokens: 1000,
       messages: [{
         role: "user",
