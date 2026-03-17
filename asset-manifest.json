@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/tax-tracker-2026/static/css/main.e6c13ad2.css",
-    "main.js": "/tax-tracker-2026/static/js/main.e2d7771c.js",
-    "static/js/453.9d638608.chunk.js": "/tax-tracker-2026/static/js/453.9d638608.chunk.js",
-    "index.html": "/tax-tracker-2026/index.html",
-    "main.e6c13ad2.css.map": "/tax-tracker-2026/static/css/main.e6c13ad2.css.map",
-    "main.e2d7771c.js.map": "/tax-tracker-2026/static/js/main.e2d7771c.js.map",
-    "453.9d638608.chunk.js.map": "/tax-tracker-2026/static/js/453.9d638608.chunk.js.map"
+    "main.css": "/static/css/main.e6c13ad2.css",
+    "main.js": "/static/js/main.251571ad.js",
+    "static/js/453.9d638608.chunk.js": "/static/js/453.9d638608.chunk.js",
+    "index.html": "/index.html",
+    "main.e6c13ad2.css.map": "/static/css/main.e6c13ad2.css.map",
+    "main.251571ad.js.map": "/static/js/main.251571ad.js.map",
+    "453.9d638608.chunk.js.map": "/static/js/453.9d638608.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.e2d7771c.js"
+    "static/js/main.251571ad.js"
   ]
 }
