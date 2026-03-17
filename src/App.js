@@ -16,18 +16,13 @@ async function loadStorage(path) {
 
 async function saveStorage(path, val) {
   try {
-    console.log("Firebase saving to:", path, "value:", JSON.stringify(val).slice(0, 100));
-    const res = await fetch(`${FB_URL}/${path}.json`, {
+    await fetch(`${FB_URL}/${path}.json`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(val),
     });
-    const text = await res.text();
-    console.log("Firebase response:", res.status, text.slice(0, 200));
-    return res.ok;
   } catch (e) {
     console.error("Firebase write error:", e);
-    return false;
   }
 }
 
@@ -127,13 +122,11 @@ async function parsePaystub(base64, mediaType) {
     ? { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } }
     : { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } };
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+const res = await fetch("/api/parse-paystub", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
+   headers: {
+  "Content-Type": "application/json",
+},
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1000,
@@ -217,6 +210,7 @@ export default function TaxTracker() {
   // Match entries to projections — handles abbreviations, partial names, and aliases
   // Each projection can define aliases that paystubs might use
   const PROJECTION_ALIASES = {
+    "SDCCD": ["sdccd", "san diego college", "continuing education", "sdcce"],
     "SDCCE": ["sdccd", "san diego college", "continuing education", "sdcce"],
     "Career Certified": ["career certified"],
     "Stanford Health Care": ["stanford", "stanford health"],
@@ -568,7 +562,7 @@ export default function TaxTracker() {
                   {e.estimatedPayment > 0 && <div style={{ fontSize: 11, color: c.gold, marginTop: 2 }}>Est. paid {fmt(e.estimatedPayment)}</div>}
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, fontFamily: "'DM Mono'", color: "#fff" }}>{fmt(e.amount)}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, fontFamily: "'DM Mono'", color: c.text }}>{fmt(e.amount)}</div>
                   <button style={{ ...btn("danger"), padding: "3px 10px", fontSize: 11, marginTop: 6 }} onClick={() => setEntries(p => p.filter(x => x.id !== e.id))}>Remove</button>
                 </div>
               </div>
