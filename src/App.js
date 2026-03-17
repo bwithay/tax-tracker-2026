@@ -210,8 +210,8 @@ export default function TaxTracker() {
   // Match entries to projections — handles abbreviations, partial names, and aliases
   // Each projection can define aliases that paystubs might use
   const PROJECTION_ALIASES = {
-    "SDCCD": ["sdccd", "san diego college", "continuing education", "sdcce"],
-    "SDCCE": ["sdccd", "san diego college", "continuing education", "sdcce"],
+    "SDCCD": ["sdccd", "san diego", "continuing education", "sdcce"],
+    "SDCCE": ["sdccd", "san diego", "continuing education", "sdcce"],
     "Career Certified": ["career certified"],
     "Stanford Health Care": ["stanford", "stanford health"],
     "IHSS": ["ihss", "in-home supportive"],
